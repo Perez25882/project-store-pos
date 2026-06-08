@@ -13,9 +13,10 @@ beforeAll(async () => {
   await prisma.$connect();
 
   // Clean slate
-  await prisma.user.deleteMany({ where: { email: { in: ['test@example.com'] } } });
+  await prisma.user.deleteMany({ where: { username: 'testuser' } });
   await prisma.user.create({
     data: {
+      username: 'testuser',
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: await hashPassword('Password123!'),
@@ -26,7 +27,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await prisma.user.deleteMany({ where: { email: { in: ['test@example.com'] } } });
+  await prisma.user.deleteMany({ where: { username: 'testuser' } });
   await app.close();
   await prisma.$disconnect();
 });
@@ -36,7 +37,7 @@ describe('POST /api/auth/login', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/auth/login',
-      payload: { email: 'test@example.com', password: 'wrongpassword' },
+      payload: { username: 'testuser', password: 'wrongpassword' },
     });
     expect(res.statusCode).toBe(401);
   });
@@ -45,13 +46,13 @@ describe('POST /api/auth/login', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/auth/login',
-      payload: { email: 'test@example.com', password: 'Password123!' },
+      payload: { username: 'testuser', password: 'Password123!' },
     });
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
     expect(body.success).toBe(true);
     expect(body.data.accessToken).toBeDefined();
     expect(body.data.refreshToken).toBeDefined();
-    expect(body.data.user.email).toBe('test@example.com');
+    expect(body.data.user.username).toBe('testuser');
   });
 });

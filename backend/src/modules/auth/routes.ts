@@ -9,18 +9,18 @@ import {
 } from './service.js';
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  username: z.string().min(1),
   password: z.string().min(1),
 });
 
 export default async function authRoutes(fastify: FastifyInstance) {
   fastify.post('/login', async (request, reply) => {
-    const { email, password } = loginSchema.parse(request.body);
-    const user = await prisma.user.findUnique({ where: { email } });
+    const { username, password } = loginSchema.parse(request.body);
+    const user = await prisma.user.findUnique({ where: { username } });
     if (!user || !user.isActive || !(await verifyPassword(password, user.passwordHash))) {
       return reply.status(401).send({
         success: false,
-        error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' },
+        error: { code: 'INVALID_CREDENTIALS', message: 'Invalid username or password' },
       });
     }
     await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
@@ -37,7 +37,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
         user: {
           id: user.id,
           name: user.name,
-          email: user.email,
+          username: user.username,
           role: user.role,
           storeId: user.storeId,
         },
@@ -62,7 +62,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       });
     }
     const accessToken = await reply.jwtSign(
-      { id: user.id, email: user.email, role: user.role, storeId: user.storeId },
+      { id: user.id, username: user.username, role: user.role, storeId: user.storeId },
       { expiresIn: '15m' }
     );
     return reply.send({ success: true, data: { accessToken, refreshToken: result.newToken } });

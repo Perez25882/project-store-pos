@@ -22,6 +22,7 @@ async function main() {
 
   const admin = await prisma.user.create({
     data: {
+      username: 'admin',
       name: 'Super Admin',
       email: 'admin@buildmat.gh',
       passwordHash: await hashPassword('Admin123!'),
@@ -32,6 +33,7 @@ async function main() {
 
   await prisma.user.create({
     data: {
+      username: 'kumasi.staff',
       name: 'Kumasi Staff',
       email: 'kumasi.staff@buildmat.gh',
       passwordHash: await hashPassword('Staff123!'),
@@ -43,6 +45,7 @@ async function main() {
 
   await prisma.user.create({
     data: {
+      username: 'accra.staff',
       name: 'Accra Staff',
       email: 'accra.staff@buildmat.gh',
       passwordHash: await hashPassword('Staff123!'),

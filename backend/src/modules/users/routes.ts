@@ -5,8 +5,9 @@ import { authenticate, authorize } from '../../middleware/auth.js';
 import { hashPassword } from '../auth/service.js';
 
 const createSchema = z.object({
+  username: z.string().min(3),
   name: z.string().min(1),
-  email: z.string().email(),
+  email: z.string().email().optional(),
   phone: z.string().optional(),
   password: z.string().min(8),
   role: z.enum(['ADMIN', 'STAFF']),
@@ -28,18 +29,19 @@ export default async function userRoutes(fastify: FastifyInstance) {
 
   fastify.post('/', async (request, reply) => {
     const data = createSchema.parse(request.body);
-    const existing = await prisma.user.findUnique({ where: { email: data.email } });
+    const existing = await prisma.user.findUnique({ where: { username: data.username } });
     if (existing) {
       return reply.status(409).send({
         success: false,
-        error: { code: 'EMAIL_EXISTS', message: 'Email already in use' },
+        error: { code: 'USERNAME_EXISTS', message: 'Username already in use' },
       });
     }
     const passwordHash = await hashPassword(data.password);
     const user = await prisma.user.create({
       data: {
+        username: data.username,
         name: data.name,
-        email: data.email,
+        email: data.email ?? null,
         phone: data.phone,
         passwordHash,
         role: data.role,
@@ -49,7 +51,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
     });
     return reply.status(201).send({
       success: true,
-      data: { id: user.id, name: user.name, email: user.email, role: user.role, storeId: user.storeId },
+      data: { id: user.id, username: user.username, name: user.name, role: user.role, storeId: user.storeId },
     });
   });
 
@@ -59,6 +61,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
       select: {
         id: true,
         name: true,
+        username: true,
         email: true,
         phone: true,
         role: true,
@@ -78,13 +81,13 @@ export default async function userRoutes(fastify: FastifyInstance) {
       where: { id },
       data: {
         ...(data.name && { name: data.name }),
-        ...(data.email && { email: data.email }),
+        ...(data.email !== undefined && { email: data.email }),
         ...(data.phone !== undefined && { phone: data.phone }),
         ...(data.role && { role: data.role }),
         ...(data.storeId !== undefined && { storeId: data.storeId }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
       },
-      select: { id: true, name: true, email: true, role: true, storeId: true, isActive: true },
+      select: { id: true, username: true, name: true, email: true, role: true, storeId: true, isActive: true },
     });
     return reply.send({ success: true, data: user });
   });

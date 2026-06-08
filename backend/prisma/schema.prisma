@@ -86,7 +86,8 @@ model Store {
 model User {
   id           String    @id @default(cuid())
   name         String
-  email        String    @unique
+  username     String?   @unique
+  email        String?   @unique
   phone        String?
   passwordHash String
   role         Role

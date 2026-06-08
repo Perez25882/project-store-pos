@@ -13,14 +13,14 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
 
     const decoded = await request.jwtVerify<{
       id: string;
-      email: string;
+      username: string;
       role: Role;
       storeId: string | null;
     }>();
 
     request.user = {
       id: decoded.id,
-      email: decoded.email,
+      username: decoded.username,
       role: decoded.role,
       storeId: decoded.storeId,
     };
