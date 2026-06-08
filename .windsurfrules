@@ -1,0 +1,89 @@
+# Superpowers + Context Engineering Bootstrap for Windsurf/Cascade
+
+## CRITICAL RULES
+
+- If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST read that skill file before responding.
+- IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+- Invoke relevant or requested skills BEFORE any response or action. Even a 1% chance a skill might apply means that you should read the skill to check.
+
+## Instruction Priority
+
+1. **User's explicit instructions** (direct requests, .windsurfrules, CLAUDE.md, GEMINI.md, AGENTS.md) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
+
+## How to Access Skills
+
+Since Cascade does not have a native `Skill` tool, use your `read_file` tool to load skill content from the `skills/` directory when relevant.
+
+Skills are located at `skills/<skill-name>/SKILL.md`. Before starting any task, check if a skill applies and read it.
+
+### Superpowers skills
+- `skills/brainstorming/SKILL.md` — Use when starting any new feature or project
+- `skills/writing-plans/SKILL.md` — Use when creating implementation plans
+- `skills/test-driven-development/SKILL.md` — Use when writing code
+- `skills/systematic-debugging/SKILL.md` — Use when fixing bugs
+- `skills/executing-plans/SKILL.md` — Use when working through a plan
+- `skills/requesting-code-review/SKILL.md` — Use before asking for code review
+- `skills/receiving-code-review/SKILL.md` — Use when receiving feedback
+- `skills/using-superpowers/SKILL.md` — Your introduction to the system
+
+### Context Engineering skills
+- `skills/context-fundamentals/SKILL.md` — Core context engineering principles
+- `skills/context-degradation/SKILL.md` — Managing context decay and truncation
+- `skills/context-compression/SKILL.md` — Compressing context without losing meaning
+- `skills/context-optimization/SKILL.md` — Optimizing context for agent performance
+- `skills/latent-briefing/SKILL.md` — Latent-space context briefing techniques
+- `skills/multi-agent-patterns/SKILL.md` — Multi-agent architecture patterns
+- `skills/memory-systems/SKILL.md` — Designing agent memory systems
+- `skills/tool-design/SKILL.md` — Designing effective agent tools
+- `skills/filesystem-context/SKILL.md` — Using filesystem for context management
+- `skills/hosted-agents/SKILL.md` — Deploying and managing hosted agents
+- `skills/evaluation/SKILL.md` — Evaluating agent systems
+- `skills/advanced-evaluation/SKILL.md` — Advanced evaluation methodologies
+- `skills/harness-engineering/SKILL.md` — Building agent harnesses
+- `skills/project-development/SKILL.md` — Agent project development workflows
+- `skills/bdi-mental-states/SKILL.md` — Belief-Desire-Intention mental state modeling
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** - these guide execution
+
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+- "This is just a simple question" → Questions are tasks. Check for skills.
+- "I need more context first" → Skill check comes BEFORE clarifying questions.
+- "Let me explore the codebase first" → Skills tell you HOW to explore. Check first.
+- "I can check git/files quickly" → Files lack conversation context. Check for skills.
+- "This doesn't need a formal skill" → If a skill exists, use it.
+- "I remember this skill" → Skills evolve. Read current version.
+- "This doesn't count as a task" → Action = task. Check for skills.
+- "The skill is overkill" → Simple things become complex. Use it.
+- "I'll just do this one thing first" → Check BEFORE doing anything.
+- "This feels productive" → Undisciplined action wastes time. Skills prevent this.
+- "I know what that means" → Knowing the concept ≠ using the skill. Read it.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+## Platform Adaptation
+
+- `TodoWrite` tool → use todo_list tool or track todos manually in your response
+- `Task` with subagents → not available; do the work directly or break into steps
+- `Skill` tool → read skill files with `read_file` tool
+- File operations → use your native file tools
