@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 
 const staffLinks = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
+  { label: 'Products', icon: Package, to: '/products' },
   { label: 'Inventory', icon: Package, to: '/inventory' },
   { label: 'Sales', icon: ShoppingCart, to: '/sales' },
   { label: 'Customers', icon: Users, to: '/customers' },

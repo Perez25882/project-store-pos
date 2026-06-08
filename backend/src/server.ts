@@ -7,6 +7,9 @@ import { env } from './config/env.js';
 import authRoutes from './modules/auth/routes.js';
 import storeRoutes from './modules/stores/routes.js';
 import userRoutes from './modules/users/routes.js';
+import categoryRoutes from './modules/categories/routes.js';
+import productRoutes from './modules/products/routes.js';
+import inventoryRoutes from './modules/inventory/routes.js';
 
 const app = Fastify({ logger: env.NODE_ENV === 'development' });
 
@@ -33,6 +36,9 @@ async function start() {
   app.register(authRoutes, { prefix: '/api/auth' });
   app.register(storeRoutes, { prefix: '/api/stores' });
   app.register(userRoutes, { prefix: '/api/users' });
+  app.register(categoryRoutes, { prefix: '/api/categories' });
+  app.register(productRoutes, { prefix: '/api/products' });
+  app.register(inventoryRoutes, { prefix: '/api/inventory' });
 
   app.get('/health', async () => ({ status: 'ok' }));
 
