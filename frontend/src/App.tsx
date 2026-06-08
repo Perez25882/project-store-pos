@@ -4,6 +4,7 @@ import Login from '@/pages/Login';
 import Dashboard from '@/pages/Dashboard';
 import Products from '@/pages/Products';
 import Inventory from '@/pages/Inventory';
+import Sales from '@/pages/Sales';
 import Layout from '@/components/Layout';
 
 function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
@@ -47,6 +48,16 @@ export default function App() {
         }
       >
         <Route index element={<Inventory />} />
+      </Route>
+      <Route
+        path="/sales"
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Sales />} />
       </Route>
       <Route path="/:storeId/*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
