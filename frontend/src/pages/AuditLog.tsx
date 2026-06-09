@@ -23,7 +23,7 @@ export default function AuditLog() {
   const [filterAction, setFilterAction] = useState('');
   const [filterEntity, setFilterEntity] = useState('');
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['audit', currentStore, filterAction, filterEntity],
     queryFn: async () => {
       const params: Record<string, string> = {};

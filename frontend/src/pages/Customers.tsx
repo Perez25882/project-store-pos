@@ -22,7 +22,7 @@ export default function Customers() {
   const [editing, setEditing] = useState<Customer | null>(null);
   const [form, setForm] = useState({ name: '', phone: '', email: '', address: '', storeId: currentStore || '' });
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['customers', currentStore],
     queryFn: async () => {
       const res = await api.get('/customers', { params: currentStore ? { storeId: currentStore } : {} });

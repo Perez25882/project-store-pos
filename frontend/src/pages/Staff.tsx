@@ -24,7 +24,7 @@ export default function Staff() {
   const [editing, setEditing] = useState<StaffUser | null>(null);
   const [form, setForm] = useState({ name: '', username: '', password: '', email: '', phone: '', role: 'STAFF' as 'ADMIN' | 'STAFF', storeId: '' });
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['staff'],
     queryFn: async () => {
       const res = await api.get('/users');

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
-import { Calculator, Plus, TrendingUp, TrendingDown, Wallet, Receipt, Download } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Wallet, Download } from 'lucide-react';
 
 interface Summary {
   revenue: number;

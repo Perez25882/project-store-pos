@@ -11,7 +11,6 @@ interface StoreComp { storeId: string; storeName: string; revenue: number; sales
 interface CategoryBreakdown { categoryId: string; name: string; quantity: number; revenue: number }
 
 export default function Reports() {
-  const user = useAuthStore((s) => s.user);
   const currentStore = useAuthStore((s) => s.currentStore);
   const [tab, setTab] = useState<'top-products' | 'sales-trend' | 'employees' | 'stores' | 'categories' | 'inventory-valuation'>('top-products');
   const [fromDate, setFromDate] = useState('');

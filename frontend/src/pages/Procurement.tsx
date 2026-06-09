@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
-import { Truck, Plus, CheckCircle, XCircle, PackageCheck } from 'lucide-react';
+import { Plus, PackageCheck } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -36,11 +36,10 @@ interface ProcurementOrder {
   total: number;
   createdAt: string;
   expectedAt?: string;
-  items: { product: { name: string }; quantityOrdered: number; quantityReceived: number }[];
+  items: { product: { id: string; name: string }; quantityOrdered: number; quantityReceived: number }[];
 }
 
 export default function Procurement() {
-  const user = useAuthStore((s) => s.user);
   const currentStore = useAuthStore((s) => s.currentStore);
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);

@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { useAuthStore } from '@/stores/auth-store';
 import { Settings as SettingsIcon, Store, Bell, Shield } from 'lucide-react';
 
 export default function Settings() {
-  const user = useAuthStore((s) => s.user);
   const [tab, setTab] = useState<'general' | 'store' | 'security'>('general');
 
   return (
