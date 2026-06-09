@@ -8,6 +8,7 @@ import Sales from '@/pages/Sales';
 import Suppliers from '@/pages/Suppliers';
 import Procurement from '@/pages/Procurement';
 import Accounting from '@/pages/Accounting';
+import Reports from '@/pages/Reports';
 import Layout from '@/components/Layout';
 
 function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
@@ -91,6 +92,16 @@ export default function App() {
         }
       >
         <Route index element={<Accounting />} />
+      </Route>
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Reports />} />
       </Route>
       <Route path="/:storeId/*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

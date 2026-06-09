@@ -16,6 +16,7 @@ import supplierRoutes from './modules/suppliers/routes.js';
 import procurementRoutes from './modules/procurement/routes.js';
 import expenseRoutes from './modules/expenses/routes.js';
 import accountingRoutes from './modules/accounting/routes.js';
+import reportRoutes from './modules/reports/routes.js';
 
 const app = Fastify({ logger: env.NODE_ENV === 'development' });
 
@@ -51,6 +52,7 @@ async function start() {
   app.register(procurementRoutes, { prefix: '/api/procurement' });
   app.register(expenseRoutes, { prefix: '/api/expenses' });
   app.register(accountingRoutes, { prefix: '/api/accounting' });
+  app.register(reportRoutes, { prefix: '/api/reports' });
 
   app.get('/health', async () => ({ status: 'ok' }));
 
