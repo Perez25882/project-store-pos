@@ -79,6 +79,7 @@ model Store {
   suppliers          Supplier[]
   procurementOrders  ProcurementOrder[]
   expenses           Expense[]
+  auditLogs          AuditLog[]
 
   @@map("stores")
 }
@@ -103,6 +104,7 @@ model User {
   procurementOrders  ProcurementOrder[]
   stockMovements     StockMovement[]
   expenses           Expense[]
+  auditLogs          AuditLog[]
   createdBy          User?              @relation("UserCreatedBy", fields: [createdById], references: [id])
   createdById        String?
   createdUsers       User[]             @relation("UserCreatedBy")
@@ -354,4 +356,37 @@ model Expense {
 
   @@index([storeId, date])
   @@map("expenses")
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  VOID_SALE
+  RECEIVE_GOODS
+  EXPORT
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  storeId    String?
+  userId     String?
+  action     AuditAction
+  entity     String
+  entityId   String?
+  oldValue   String?
+  newValue   String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime    @default(now())
+
+  store Store? @relation(fields: [storeId], references: [id])
+  user  User?  @relation(fields: [userId], references: [id])
+
+  @@index([storeId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action, entity])
+  @@map("audit_logs")
 }
