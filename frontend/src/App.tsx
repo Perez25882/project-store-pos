@@ -7,6 +7,7 @@ import Inventory from '@/pages/Inventory';
 import Sales from '@/pages/Sales';
 import Suppliers from '@/pages/Suppliers';
 import Procurement from '@/pages/Procurement';
+import Accounting from '@/pages/Accounting';
 import Layout from '@/components/Layout';
 
 function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
@@ -80,6 +81,16 @@ export default function App() {
         }
       >
         <Route index element={<Procurement />} />
+      </Route>
+      <Route
+        path="/accounting"
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Accounting />} />
       </Route>
       <Route path="/:storeId/*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
