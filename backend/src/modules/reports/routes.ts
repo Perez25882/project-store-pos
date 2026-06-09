@@ -42,14 +42,14 @@ export default async function reportRoutes(fastify: FastifyInstance) {
       dateFilter.lte = to ? endOfDay(new Date(to)) : undefined;
     }
 
-    const items = await prisma.saleItem.findMany({
+    const items: any[] = await prisma.saleItem.findMany({
       where: {
         sale: { ...filter, status: { not: 'VOIDED' }, ...(Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {}) },
       },
       include: { product: { select: { name: true, sku: true, sellingPrice: true } } },
     });
 
-    const grouped = items.reduce<Map<string, TopProduct>>((acc, item) => {
+    const grouped = items.reduce<Map<string, TopProduct>>((acc, item: any) => {
       const key = item.productId;
       if (!acc.has(key)) {
         acc.set(key, { productId: key, name: item.product.name, sku: item.product.sku, quantity: 0, revenue: 0 });
@@ -72,12 +72,12 @@ export default async function reportRoutes(fastify: FastifyInstance) {
     const fromDate = from ? new Date(from) : addDays(new Date(), -29);
     const toDate = to ? new Date(to) : new Date();
 
-    const sales = await prisma.sale.findMany({
+    const sales: any[] = await prisma.sale.findMany({
       where: { ...filter, status: { not: 'VOIDED' }, createdAt: { gte: startOfDay(fromDate), lte: endOfDay(toDate) } },
       select: { createdAt: true, total: true },
     });
 
-    const grouped = sales.reduce<Map<string, TrendItem>>((acc, s) => {
+    const grouped = sales.reduce<Map<string, TrendItem>>((acc, s: any) => {
       const key = s.createdAt.toISOString().split('T')[0];
       if (!acc.has(key)) acc.set(key, { date: key, sales: 0, revenue: 0 });
       const g = acc.get(key)!;
@@ -101,12 +101,12 @@ export default async function reportRoutes(fastify: FastifyInstance) {
       dateFilter.lte = to ? endOfDay(new Date(to)) : undefined;
     }
 
-    const sales = await prisma.sale.findMany({
+    const sales: any[] = await prisma.sale.findMany({
       where: { ...filter, status: { not: 'VOIDED' }, ...(Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {}) },
       include: { employee: { select: { name: true } }, items: { select: { quantity: true, total: true } } },
     });
 
-    const grouped = sales.reduce<Map<string, EmployeePerf>>((acc, s) => {
+    const grouped = sales.reduce<Map<string, EmployeePerf>>((acc, s: any) => {
       const key = s.employeeId;
       if (!acc.has(key)) {
         acc.set(key, { employeeId: key, name: s.employee.name, salesCount: 0, revenue: 0, itemsSold: 0 });
@@ -114,7 +114,7 @@ export default async function reportRoutes(fastify: FastifyInstance) {
       const g = acc.get(key)!;
       g.salesCount += 1;
       g.revenue += Number(s.total);
-      g.itemsSold += s.items.reduce((sum: number, i: { quantity: number | string }) => sum + Number(i.quantity), 0);
+      g.itemsSold += s.items.reduce((sum: number, i: any) => sum + Number(i.quantity), 0);
       return acc;
     }, new Map());
 
@@ -154,11 +154,11 @@ export default async function reportRoutes(fastify: FastifyInstance) {
         return {
           storeId: store.id,
           storeName: store.name,
-          revenue: Number(salesAgg._sum.total ?? 0),
+          revenue: Number(salesAgg._sum?.total ?? 0),
           salesCount: salesAgg._count as unknown as number,
-          expenses: Number(expensesAgg._sum.amount ?? 0),
-          stockQuantity: Number(stockAgg._sum.quantity ?? 0),
-          netProfit: Number(salesAgg._sum.total ?? 0) - Number(expensesAgg._sum.amount ?? 0),
+          expenses: Number(expensesAgg._sum?.amount ?? 0),
+          stockQuantity: Number(stockAgg._sum?.quantity ?? 0),
+          netProfit: Number(salesAgg._sum?.total ?? 0) - Number(expensesAgg._sum?.amount ?? 0),
         };
       })
     );
@@ -177,14 +177,14 @@ export default async function reportRoutes(fastify: FastifyInstance) {
       dateFilter.lte = to ? endOfDay(new Date(to)) : undefined;
     }
 
-    const items = await prisma.saleItem.findMany({
+    const items: any[] = await prisma.saleItem.findMany({
       where: {
         sale: { ...filter, status: { not: 'VOIDED' }, ...(Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {}) },
       },
       include: { product: { include: { category: true } } },
     });
 
-    const grouped = items.reduce<Map<string, CategoryBreakdown>>((acc, item) => {
+    const grouped = items.reduce<Map<string, CategoryBreakdown>>((acc, item: any) => {
       const key = item.product.categoryId;
       if (!acc.has(key)) {
         acc.set(key, { categoryId: key, name: item.product.category.name, quantity: 0, revenue: 0 });

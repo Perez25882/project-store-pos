@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { authenticate } from '../../middleware/auth.js';
 import { addStoreScope } from '../../middleware/store-scope.js';
@@ -157,8 +158,10 @@ export default async function salesRoutes(fastify: FastifyInstance) {
     addStoreScope(request);
     const filter = request.storeFilter;
     const { status } = request.query as Record<string, string>;
+    const where: Prisma.SaleWhereInput = { ...filter };
+    if (status) (where as any).status = status;
     const sales = await prisma.sale.findMany({
-      where: { ...filter, ...(status && { status }) },
+      where,
       include: { items: { include: { product: { select: { name: true, sku: true } } } }, customer: { select: { name: true } } },
       orderBy: { createdAt: 'desc' },
       take: 100,

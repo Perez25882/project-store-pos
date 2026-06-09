@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../../lib/prisma.js';
+import type { TokenPayload } from '../../types/index.js';
 import {
   verifyPassword,
   createRefreshToken,
@@ -25,7 +26,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
     }
     await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
     const accessToken = await reply.jwtSign(
-      { id: user.id, email: user.email, role: user.role, storeId: user.storeId },
+      { id: user.id, username: user.username!, role: user.role, storeId: user.storeId } as TokenPayload,
       { expiresIn: '15m' }
     );
     const refreshToken = await createRefreshToken(user.id);
@@ -62,7 +63,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       });
     }
     const accessToken = await reply.jwtSign(
-      { id: user.id, username: user.username, role: user.role, storeId: user.storeId },
+      { id: user.id, username: user.username!, role: user.role, storeId: user.storeId } as TokenPayload,
       { expiresIn: '15m' }
     );
     return reply.send({ success: true, data: { accessToken, refreshToken: result.newToken } });

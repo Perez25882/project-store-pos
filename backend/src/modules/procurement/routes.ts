@@ -86,8 +86,10 @@ export default async function procurementRoutes(fastify: FastifyInstance) {
     addStoreScope(request);
     const filter = request.storeFilter;
     const { status } = request.query as Record<string, string>;
+    const where: any = { ...filter };
+    if (status) where.status = status;
     const orders = await prisma.procurementOrder.findMany({
-      where: { ...filter, ...(status && { status }) },
+      where,
       include: { supplier: { select: { name: true } }, items: { include: { product: { select: { name: true } } } } },
       orderBy: { createdAt: 'desc' },
       take: 100,

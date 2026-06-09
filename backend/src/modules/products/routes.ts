@@ -82,7 +82,7 @@ export default async function productRoutes(fastify: FastifyInstance) {
       include: { category: true, stockLevel: true },
     });
     const lowStock = products.filter(
-      (p: typeof products[0]) => p.stockLevel && p.stockLevel.quantity < p.reorderLevel
+      (p: typeof products[0]) => p.stockLevel && Number(p.stockLevel.quantity) < Number(p.reorderLevel)
     );
     return reply.send({ success: true, data: lowStock });
   });

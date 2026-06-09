@@ -7,9 +7,14 @@ export interface TokenPayload {
   storeId: string | null;
 }
 
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    payload: TokenPayload;
+  }
+}
+
 declare module 'fastify' {
   interface FastifyRequest {
-    user: TokenPayload;
     storeFilter: { storeId?: string } | Record<string, never>;
   }
 }

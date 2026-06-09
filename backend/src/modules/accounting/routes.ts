@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { authenticate } from '../../middleware/auth.js';
 import { addStoreScope } from '../../middleware/store-scope.js';
@@ -21,19 +22,21 @@ export default async function accountingRoutes(fastify: FastifyInstance) {
       dateFilter.lte = to ? endOfDay(new Date(to)) : undefined;
     }
 
-    const whereSales = { ...filter, status: { not: 'VOIDED' }, ...(Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {}) };
-    const whereExpenses = { ...filter, ...(Object.keys(dateFilter).length > 0 ? { date: dateFilter } : {}) };
+    const whereSales: Prisma.SaleWhereInput = { ...filter, status: { not: 'VOIDED' } };
+    if (Object.keys(dateFilter).length > 0) (whereSales as any).createdAt = dateFilter;
+    const whereExpenses: Prisma.ExpenseWhereInput = { ...filter };
+    if (Object.keys(dateFilter).length > 0) (whereExpenses as any).date = dateFilter;
 
     const [salesAgg, expensesAgg, salesCount, paymentsAgg] = await Promise.all([
       prisma.sale.aggregate({ where: whereSales, _sum: { total: true, subtotal: true, tax: true, discount: true } }),
       prisma.expense.aggregate({ where: whereExpenses, _sum: { amount: true } }),
       prisma.sale.count({ where: whereSales }),
-      prisma.payment.aggregate({ where: { sale: { ...filter, status: { not: 'VOIDED' } } }, _sum: { amount: true } }),
+      prisma.payment.aggregate({ where: { sale: whereSales as any }, _sum: { amount: true } }),
     ]);
 
-    const revenue = Number(salesAgg._sum.total ?? 0);
+    const revenue = Number(salesAgg._sum?.total ?? 0);
     const costOfGoods = 0;
-    const expenses = Number(expensesAgg._sum.amount ?? 0);
+    const expenses = Number(expensesAgg._sum?.amount ?? 0);
     const grossProfit = revenue - costOfGoods;
     const netProfit = grossProfit - expenses;
 
