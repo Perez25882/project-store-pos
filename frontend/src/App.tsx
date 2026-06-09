@@ -12,6 +12,7 @@ import Reports from '@/pages/Reports';
 import Customers from '@/pages/Customers';
 import Staff from '@/pages/Staff';
 import Settings from '@/pages/Settings';
+import AuditLog from '@/pages/AuditLog';
 import Layout from '@/components/Layout';
 
 function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
@@ -135,6 +136,16 @@ export default function App() {
         }
       >
         <Route index element={<Settings />} />
+      </Route>
+      <Route
+        path="/audit"
+        element={
+          <ProtectedRoute adminOnly>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<AuditLog />} />
       </Route>
       <Route path="/:storeId/*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

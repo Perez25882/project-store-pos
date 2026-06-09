@@ -1,5 +1,5 @@
 import { useAuthStore } from '@/stores/auth-store';
-import { LayoutDashboard, Package, ShoppingCart, Users, Truck, Calculator, BarChart3, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, Truck, Calculator, BarChart3, Settings, LogOut, FileText } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const staffLinks = [
@@ -15,6 +15,7 @@ const staffLinks = [
 
 const adminLinks = [
   { label: 'Staff', icon: Users, to: '/staff' },
+  { label: 'Audit Log', icon: FileText, to: '/audit' },
   { label: 'Settings', icon: Settings, to: '/settings' },
 ];
 

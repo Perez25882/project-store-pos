@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
-import { BarChart3, TrendingUp, Users, Package, Building2 } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Package, Building2, Warehouse } from 'lucide-react';
 
 interface TopProduct { productId: string; name: string; sku: string; quantity: number; revenue: number }
 interface TrendItem { date: string; sales: number; revenue: number }
@@ -13,7 +13,7 @@ interface CategoryBreakdown { categoryId: string; name: string; quantity: number
 export default function Reports() {
   const user = useAuthStore((s) => s.user);
   const currentStore = useAuthStore((s) => s.currentStore);
-  const [tab, setTab] = useState<'top-products' | 'sales-trend' | 'employees' | 'stores' | 'categories'>('top-products');
+  const [tab, setTab] = useState<'top-products' | 'sales-trend' | 'employees' | 'stores' | 'categories' | 'inventory-valuation'>('top-products');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
@@ -63,12 +63,22 @@ export default function Reports() {
     },
   });
 
+  const inventoryValuation = useQuery({
+    queryKey: ['reports-inventory-valuation', currentStore],
+    queryFn: async () => {
+      const res = await api.get('/reports/inventory-valuation', { params: currentStore ? { storeId: currentStore } : {} });
+      return res.data.data as { items: any[]; totalValue: number; totalQuantity: number; productCount: number };
+    },
+    enabled: tab === 'inventory-valuation',
+  });
+
   const tabs = [
     { id: 'top-products' as const, label: 'Top Products', icon: Package },
     { id: 'sales-trend' as const, label: 'Sales Trend', icon: TrendingUp },
     { id: 'employees' as const, label: 'Employees', icon: Users },
     { id: 'stores' as const, label: 'Store Comparison', icon: Building2 },
     { id: 'categories' as const, label: 'Categories', icon: BarChart3 },
+    { id: 'inventory-valuation' as const, label: 'Inventory Valuation', icon: Warehouse },
   ];
 
   return (
@@ -191,6 +201,47 @@ export default function Reports() {
             </tbody>
           </table>
           {(!categoryBreakdown.data || categoryBreakdown.data.length === 0) && <div className="p-8 text-center text-muted-foreground text-sm">No data</div>}
+        </div>
+      )}
+
+      {tab === 'inventory-valuation' && (
+        <div className="space-y-4">
+          {inventoryValuation.data && (
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white border border-border p-4">
+                <p className="text-sm text-muted-foreground">Total Products</p>
+                <p className="text-2xl font-bold font-mono">{inventoryValuation.data.productCount}</p>
+              </div>
+              <div className="bg-white border border-border p-4">
+                <p className="text-sm text-muted-foreground">Total Quantity</p>
+                <p className="text-2xl font-bold font-mono">{inventoryValuation.data.totalQuantity}</p>
+              </div>
+              <div className="bg-white border border-border p-4">
+                <p className="text-sm text-muted-foreground">Total Value</p>
+                <p className="text-2xl font-bold font-mono">GHS {inventoryValuation.data.totalValue.toFixed(2)}</p>
+              </div>
+            </div>
+          )}
+          <div className="bg-white border border-border overflow-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted">
+                <tr><th className="text-left px-4 py-3">Product</th><th className="text-left px-4 py-3">SKU</th><th className="text-left px-4 py-3">Category</th><th className="text-right px-4 py-3">Qty</th><th className="text-right px-4 py-3">Cost</th><th className="text-right px-4 py-3">Value</th></tr>
+              </thead>
+              <tbody>
+                {inventoryValuation.data?.items.map((item: any) => (
+                  <tr key={item.productId} className="border-t border-border">
+                    <td className="px-4 py-3">{item.name}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{item.sku}</td>
+                    <td className="px-4 py-3 text-xs">{item.category}</td>
+                    <td className="px-4 py-3 text-right font-mono">{item.quantity}</td>
+                    <td className="px-4 py-3 text-right font-mono">GHS {item.costPrice.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-right font-mono">GHS {item.value.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {(!inventoryValuation.data || inventoryValuation.data.items.length === 0) && <div className="p-8 text-center text-muted-foreground text-sm">No products found</div>}
+          </div>
         </div>
       )}
     </div>

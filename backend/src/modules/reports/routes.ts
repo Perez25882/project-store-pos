@@ -198,4 +198,30 @@ export default async function reportRoutes(fastify: FastifyInstance) {
     const sorted = Array.from(grouped.values()).sort((a: CategoryBreakdown, b: CategoryBreakdown) => b.revenue - a.revenue);
     return reply.send({ success: true, data: sorted });
   });
+
+  fastify.get('/inventory-valuation', async (request, reply) => {
+    addStoreScope(request);
+    const filter = request.storeFilter;
+
+    const products: any[] = await prisma.product.findMany({
+      where: { ...filter, isActive: true },
+      include: { category: { select: { name: true } }, stockLevel: { select: { quantity: true } } },
+    });
+
+    const items = products.map((p: any) => ({
+      productId: p.id,
+      name: p.name,
+      sku: p.sku,
+      category: p.category?.name || '-',
+      unit: p.unit,
+      costPrice: Number(p.costPrice),
+      quantity: Number(p.stockLevel?.quantity ?? 0),
+      value: Number(p.stockLevel?.quantity ?? 0) * Number(p.costPrice),
+    }));
+
+    const totalValue = items.reduce((s: number, i: any) => s + i.value, 0);
+    const totalQuantity = items.reduce((s: number, i: any) => s + i.quantity, 0);
+
+    return reply.send({ success: true, data: { items, totalValue, totalQuantity, productCount: items.length } });
+  });
 }

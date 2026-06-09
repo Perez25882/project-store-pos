@@ -144,4 +144,63 @@ export default async function accountingRoutes(fastify: FastifyInstance) {
 
     return reply.send({ success: true, data: running });
   });
+
+  fastify.get('/ledger/export', async (request, reply) => {
+    addStoreScope(request);
+    const filter = request.storeFilter;
+    const { from, to } = request.query as Record<string, string>;
+
+    const dateFilter: any = {};
+    if (from || to) {
+      dateFilter.gte = from ? new Date(from) : undefined;
+      dateFilter.lte = to ? endOfDay(new Date(to)) : undefined;
+    }
+
+    const [sales, expenses, procurement] = await Promise.all([
+      prisma.sale.findMany({
+        where: { ...filter, status: { not: 'VOIDED' }, ...(Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {}) },
+        select: { id: true, invoiceNumber: true, total: true, amountPaid: true, createdAt: true, status: true },
+        orderBy: { createdAt: 'asc' },
+      }),
+      prisma.expense.findMany({
+        where: { ...filter, ...(Object.keys(dateFilter).length > 0 ? { date: dateFilter } : {}) },
+        select: { id: true, category: true, amount: true, description: true, date: true },
+        orderBy: { date: 'asc' },
+      }),
+      prisma.procurementOrder.findMany({
+        where: { ...filter, status: { not: 'CANCELLED' }, ...(Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {}) },
+        select: { id: true, orderNumber: true, total: true, status: true, createdAt: true },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ]);
+
+    const entries = [
+      ...sales.map((s: any) => ({ type: 'SALE', date: s.createdAt, reference: s.invoiceNumber, amount: Number(s.total), status: s.status })),
+      ...expenses.map((e: any) => ({ type: 'EXPENSE', date: e.date, reference: e.description, amount: -Number(e.amount), status: 'COMPLETED' })),
+      ...procurement.map((p: any) => ({ type: 'PURCHASE', date: p.createdAt, reference: p.orderNumber, amount: -Number(p.total), status: p.status })),
+    ];
+
+    entries.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    let balance = 0;
+    const rows = entries.map((e: any) => {
+      balance += e.amount;
+      return {
+        date: new Date(e.date).toISOString().split('T')[0],
+        type: e.type,
+        reference: e.reference,
+        debit: e.amount > 0 ? e.amount.toFixed(2) : '',
+        credit: e.amount < 0 ? Math.abs(e.amount).toFixed(2) : '',
+        balance: balance.toFixed(2),
+        status: e.status,
+      };
+    });
+
+    const headers = ['Date', 'Type', 'Reference', 'Debit (GHS)', 'Credit (GHS)', 'Balance (GHS)', 'Status'];
+    const csv = [headers.join(','), ...rows.map((r: any) => [r.date, r.type, `"${r.reference.replace(/"/g, '""')}"`, r.debit, r.credit, r.balance, r.status].join(','))].join('\n');
+
+    reply.header('Content-Type', 'text/csv');
+    reply.header('Content-Disposition', `attachment; filename="ledger-${from || 'all'}-to-${to || 'all'}.csv"`);
+    return reply.send(csv);
+  });
 }

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
-import { Calculator, Plus, TrendingUp, TrendingDown, Wallet, Receipt } from 'lucide-react';
+import { Calculator, Plus, TrendingUp, TrendingDown, Wallet, Receipt, Download } from 'lucide-react';
 
 interface Summary {
   revenue: number;
@@ -215,7 +215,31 @@ export default function Accounting() {
       )}
 
       {tab === 'ledger' && (
-        <div className="bg-white border border-border overflow-auto">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="font-semibold">General Ledger</h2>
+            <button
+              onClick={() => {
+                const params = new URLSearchParams();
+                if (currentStore) params.append('storeId', currentStore);
+                const url = `${api.defaults.baseURL}/accounting/ledger/export?${params.toString()}`;
+                const token = localStorage.getItem('accessToken');
+                fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+                  .then((r) => r.blob())
+                  .then((blob) => {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `ledger-${new Date().toISOString().split('T')[0]}.csv`;
+                    link.click();
+                  })
+                  .catch(() => toast.error('Export failed'));
+              }}
+              className="bg-primary text-white px-4 py-2 text-sm font-medium hover:opacity-90 flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" /> Export CSV
+            </button>
+          </div>
+          <div className="bg-white border border-border overflow-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted">
               <tr>
@@ -245,6 +269,7 @@ export default function Accounting() {
             </tbody>
           </table>
           {(!ledgerQuery.data || ledgerQuery.data.length === 0) && <div className="p-8 text-center text-muted-foreground text-sm">No ledger entries</div>}
+        </div>
         </div>
       )}
 

@@ -113,4 +113,42 @@ export default async function productRoutes(fastify: FastifyInstance) {
     await prisma.product.update({ where: { id }, data: { isActive: false } });
     return reply.send({ success: true, data: { message: 'Product deactivated' } });
   });
+
+  fastify.post('/bulk-import', async (request, reply) => {
+    const { items, storeId } = z.object({
+      storeId: z.string(),
+      items: z.array(z.object({
+        sku: z.string().min(1),
+        name: z.string().min(1),
+        description: z.string().optional(),
+        categoryId: z.string().min(1),
+        unit: z.string().min(1),
+        sellingPrice: z.coerce.number().min(0),
+        costPrice: z.coerce.number().min(0),
+        reorderLevel: z.coerce.number().int().default(10),
+        initialStock: z.coerce.number().default(0),
+      })).min(1).max(500),
+    }).parse(request.body);
+
+    const created = await prisma.$transaction(
+      items.map((item) =>
+        prisma.product.create({
+          data: {
+            sku: item.sku,
+            name: item.name,
+            description: item.description,
+            categoryId: item.categoryId,
+            unit: item.unit,
+            sellingPrice: item.sellingPrice,
+            costPrice: item.costPrice,
+            reorderLevel: item.reorderLevel,
+            storeId,
+            stockLevel: { create: { storeId, quantity: item.initialStock } },
+          },
+        })
+      )
+    );
+
+    return reply.status(201).send({ success: true, data: { count: created.length } });
+  });
 }

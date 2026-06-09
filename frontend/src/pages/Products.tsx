@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
-import { Package, AlertTriangle } from 'lucide-react';
+import { Package, AlertTriangle, Upload } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -30,6 +30,8 @@ export default function Products() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showBulk, setShowBulk] = useState(false);
+  const [bulkText, setBulkText] = useState('');
   const [form, setForm] = useState({
     sku: '', name: '', description: '', categoryId: '', unit: '',
     sellingPrice: '', costPrice: '', reorderLevel: '10',
@@ -92,6 +94,21 @@ export default function Products() {
     onError: (err: any) => toast.error(err.response?.data?.error?.message || 'Failed to delete product'),
   });
 
+  const bulkImport = useMutation({
+    mutationFn: async (body: { storeId: string; items: any[] }) => {
+      const res = await api.post('/products/bulk-import', body);
+      return res.data.data;
+    },
+    onSuccess: (data) => {
+      toast.success(`${data.count} products imported`);
+      setShowBulk(false);
+      setBulkText('');
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    },
+    onError: (err: any) => toast.error(err.response?.data?.error?.message || 'Bulk import failed'),
+  });
+
   function resetForm() {
     setForm({ sku: '', name: '', description: '', categoryId: '', unit: '', sellingPrice: '', costPrice: '', reorderLevel: '10', storeId: currentStore || '' });
   }
@@ -125,14 +142,50 @@ export default function Products() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Products</h1>
-        <button
-          onClick={() => { setShowForm(!showForm); if (showForm) { setEditingId(null); resetForm(); } }}
-          className="bg-primary text-white px-4 py-2 text-sm font-medium hover:opacity-90"
-        >
-          {showForm ? 'Cancel' : 'Add Product'}
-        </button>
+        <h1 className="text-2xl font-bold flex items-center gap-2"><Package className="h-6 w-6" /> Products</h1>
+        <div className="flex gap-2">
+          <button onClick={() => { setShowBulk(!showBulk); setShowForm(false); }} className="border border-border px-4 py-2 text-sm font-medium hover:bg-muted flex items-center gap-2">
+            <Upload className="h-4 w-4" /> Bulk Import
+          </button>
+          <button
+            onClick={() => { setShowForm(!showForm); setShowBulk(false); if (showForm) { setEditingId(null); resetForm(); } }}
+            className="bg-primary text-white px-4 py-2 text-sm font-medium hover:opacity-90"
+          >
+            {showForm ? 'Cancel' : 'Add Product'}
+          </button>
+        </div>
       </div>
+
+      {showBulk && (
+        <div className="bg-white border border-border p-4 space-y-3">
+          <h3 className="font-semibold text-sm">Bulk Import Products</h3>
+          <p className="text-xs text-muted-foreground">Paste CSV data (one per line): sku, name, categoryId, unit, sellingPrice, costPrice, reorderLevel, initialStock</p>
+          <textarea
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            placeholder={`CMT-50,Cement 50kg,CAT_ID,bag,45.00,35.00,10,100\nIR-12,Iron Rod 12mm,CAT_ID,piece,28.00,20.00,20,50`}
+            className="border border-border px-3 py-2 w-full h-32 font-mono text-xs"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                if (!currentStore) { toast.error('Select a store first'); return; }
+                const lines = bulkText.trim().split('\n').filter((l) => l.trim());
+                const items = lines.map((line) => {
+                  const [sku, name, categoryId, unit, sellingPrice, costPrice, reorderLevel, initialStock] = line.split(',').map((s) => s.trim());
+                  return { sku, name, categoryId, unit, sellingPrice: Number(sellingPrice), costPrice: Number(costPrice), reorderLevel: Number(reorderLevel) || 10, initialStock: Number(initialStock) || 0 };
+                });
+                bulkImport.mutate({ storeId: currentStore, items });
+              }}
+              className="bg-primary text-white px-4 py-2 text-sm font-medium hover:opacity-90"
+              disabled={bulkImport.isPending}
+            >
+              {bulkImport.isPending ? 'Importing...' : `Import ${bulkText.trim() ? bulkText.trim().split('\n').length : 0} Products`}
+            </button>
+            <button onClick={() => { setShowBulk(false); setBulkText(''); }} className="border border-border px-4 py-2 text-sm font-medium hover:bg-muted">Cancel</button>
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-white border border-border p-4 grid grid-cols-2 gap-4">
