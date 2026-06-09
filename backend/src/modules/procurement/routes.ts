@@ -90,7 +90,7 @@ export default async function procurementRoutes(fastify: FastifyInstance) {
     if (status) where.status = status;
     const orders = await prisma.procurementOrder.findMany({
       where,
-      include: { supplier: { select: { name: true } }, items: { include: { product: { select: { name: true } } } } },
+      include: { supplier: { select: { name: true } }, items: { include: { product: { select: { id: true, name: true } } } } },
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
