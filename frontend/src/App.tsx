@@ -5,6 +5,8 @@ import Dashboard from '@/pages/Dashboard';
 import Products from '@/pages/Products';
 import Inventory from '@/pages/Inventory';
 import Sales from '@/pages/Sales';
+import Suppliers from '@/pages/Suppliers';
+import Procurement from '@/pages/Procurement';
 import Layout from '@/components/Layout';
 
 function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
@@ -58,6 +60,26 @@ export default function App() {
         }
       >
         <Route index element={<Sales />} />
+      </Route>
+      <Route
+        path="/suppliers"
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Suppliers />} />
+      </Route>
+      <Route
+        path="/procurement"
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Procurement />} />
       </Route>
       <Route path="/:storeId/*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
