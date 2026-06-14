@@ -19,7 +19,13 @@ import accountingRoutes from './modules/accounting/routes.js';
 import reportRoutes from './modules/reports/routes.js';
 import auditRoutes from './modules/audit/routes.js';
 
-const app = Fastify({ logger: env.NODE_ENV === 'development' });
+const app = Fastify({ 
+  logger: env.NODE_ENV === 'development',
+  // Set a global request timeout (30 seconds)
+  requestTimeout: 30000,
+  // Limit payload size to prevent abuse
+  bodyLimit: 1048576, // 1MB
+});
 
 async function start() {
   await app.register(cors, { origin: env.FRONTEND_URL, credentials: true });
@@ -28,16 +34,19 @@ async function start() {
   await app.register(jwt, { secret: env.JWT_ACCESS_SECRET });
 
   app.setErrorHandler((error, request, reply) => {
-    app.log.error(error);
+    // Log error with a correlation ID for debugging
+    const correlationId = (request as any).id || 'unknown';
+    app.log.error({ correlationId, err: error });
+
     if (error.validation) {
       return reply.status(400).send({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: error.message },
+        error: { code: 'VALIDATION_ERROR', message: error.message, correlationId },
       });
     }
     return reply.status(500).send({
       success: false,
-      error: { code: 'INTERNAL_ERROR', message: 'Internal server error' },
+      error: { code: 'INTERNAL_ERROR', message: 'Internal server error', correlationId },
     });
   });
 

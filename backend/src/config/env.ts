@@ -15,6 +15,10 @@ const envSchema = z.object({
   PAYSTACK_SECRET_KEY: z.string().optional(),
   PAYSTACK_WEBHOOK_SECRET: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
+  // Admin seed configuration (production only)
+  ADMIN_SEED_USERNAME: z.string().min(1).optional(),
+  ADMIN_SEED_PASSWORD: z.string().min(10).optional(),
+  ADMIN_SEED_EMAIL: z.string().email().optional(),
 });
 
 export const env = envSchema.parse(process.env);

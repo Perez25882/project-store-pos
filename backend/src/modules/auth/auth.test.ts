@@ -5,10 +5,12 @@ import authRoutes from './routes.js';
 import { prisma } from '../../lib/prisma.js';
 import { hashPassword } from './service.js';
 
+const TEST_JWT_SECRET = process.env.TEST_JWT_SECRET || 'test-secret-32-chars-minimum!!!';
+
 const app = Fastify({ logger: false });
 
 beforeAll(async () => {
-  await app.register(jwt, { secret: 'test-secret-32-chars-minimum!!!' });
+  await app.register(jwt, { secret: TEST_JWT_SECRET });
   await app.register(authRoutes, { prefix: '/api/auth' });
   await prisma.$connect();
 

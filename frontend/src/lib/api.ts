@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// Use the absolute API URL provided by the environment variable (required for production builds)
+// Falls back to '/api' for local development when using the Vite proxy
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -20,7 +24,7 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {
         try {
-          const res = await axios.post('/api/auth/refresh', { refreshToken });
+          const res = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
           localStorage.setItem('accessToken', res.data.data.accessToken);
           localStorage.setItem('refreshToken', res.data.data.refreshToken);
           originalRequest.headers.Authorization = `Bearer ${res.data.data.accessToken}`;
